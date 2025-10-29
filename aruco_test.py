@@ -2,7 +2,7 @@ import cv2
 import cv2.aruco as aruco
 
 # Kamera açma
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 # ArUco sözlüğü oluşturma
 aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)  # Yeni yöntem
