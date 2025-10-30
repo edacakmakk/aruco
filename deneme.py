@@ -1,20 +1,26 @@
+# ~9fps 4.7.0
 import cv2
+import time
+from picamera2 import Picamera2
 
-for i in range(5):
-    cap = cv2.VideoCapture(i)
-    if cap.isOpened():
-        print(f"Kamera bulundu: index {i}")
-        cap.release()
+# pycam
+picam2 = Picamera2()
+picam2.configure(picam2.create_preview_configuration(
+                            main={"format": 'BGR888', 'size': (320, 240)}, 
+                            buffer_count=1))
+picam2.start()
 
-# Bulduğun indeksi yaz:
-cap = cv2.VideoCapture(1)  # 0 veya 1 olabilir
+# aruco
+aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_50)
+aruco_params = cv2.aruco.DetectorParameters()
+detector = cv2.aruco.ArucoDetector(aruco_dict, aruco_params)
+
+last_time = time.time()
 while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
-    cv2.imshow("Camera Test", frame)
-    if cv2.waitKey(1) & 0xFF == 27:  # ESC ile çık
-        break
+    print(f"  {1/(time.time()-last_time):.1f}           ", end="\r")
+    last_time = time.time()
+        
+    img = picam2.capture_array(wait=True)
 
-cap.release()
-cv2.destroyAllWindows()
+    #aruco stuff
+    corners, ids, rejected = detector.detectMarkers(img)

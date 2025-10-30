@@ -8,11 +8,13 @@ from picamera2 import Picamera2
 picam2 = Picamera2()
 config = picam2.create_video_configuration(
     main={"size": (640, 480), "format": "RGB888"},
-    controls={"FrameRate": 30}
+    controls={"FrameRate": 200}
 )
 picam2.configure(config)
 picam2.start()
 time.sleep(0.5)
+
+
 
 aruco = cv2.aruco
 # prepare multiple dictionaries to try
@@ -48,7 +50,12 @@ if hasattr(aruco, "ArucoDetector"):
 app = Flask(__name__)
 
 def gen():
+    last_time = time.time()
     while True:
+        fps = 1/(time.time()-last_time)
+        print(f"  {1/(time.time()-last_time):.1f}           ", end="\r")
+        last_time = time.time()
+
         frame = picam2.capture_array()
         frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
@@ -69,7 +76,7 @@ def gen():
         if ids is not None and len(ids) > 0:
             aruco.drawDetectedMarkers(frame_bgr, corners, ids)
 
-        cv2.putText(frame_bgr, f"ids: {0 if ids is None else len(ids)}",
+        cv2.putText(frame_bgr, f"ids: {0 if ids is None else len(ids)} fps: {fps:.1f}",
                     (8, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,255,0), 2, cv2.LINE_AA)
 
         ok, jpeg = cv2.imencode(".jpg", frame_bgr, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
